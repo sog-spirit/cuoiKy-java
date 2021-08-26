@@ -9,7 +9,7 @@ public class Cau2 {
 		try {
 			//createDatabase();
 			//createTable();
-			cau2.data2();
+			cau2.importData2();
 		}
 		catch (Exception e) {
 			System.out.println(e);
@@ -79,70 +79,87 @@ public class Cau2 {
 							+ "NgaySinh,"
 							+ "DiaChi,"
 							+ "Email,"
-							+ "SoDienThoai)"
-							+ "values (?,?,?,?,?,?)");
+							+ "SoDienThoai,"
+							+ "ChiPhiNhan)"
+							+ "values (?,?,?,?,?,?,?)");
 					insertStatement.setString(1, words[0]);
 					insertStatement.setString(2, words[1]);
 					insertStatement.setString(3, words[2]);
 					insertStatement.setString(4, words[3]);
 					insertStatement.setString(5, words[4]);
 					insertStatement.setString(6, words[5]);
+					insertStatement.setString(7, "0");
 					insertStatement.executeUpdate();
 				}
 				catch (Exception e) {
 					System.out.println(e);
 				}
 			}
+			input.close();
 		}
 		catch (IOException e) {
 			System.out.println(e);
 		}
 	}
-	public void data2() {
+	public void importData2() {
 		int lineNumber = 1;
-		try (Scanner input = new Scanner(new File("C:\\Users\\LENOVO\\eclipse-workspace\\cuoiKy-Java\\src\\cau2\\data2.txt"))) {
+		List<String> errorLine = new ArrayList<String>();
+		try(Scanner input = new Scanner(new File("C:\\Users\\LENOVO\\eclipse-workspace\\cuoiKy-Java\\src\\cau2\\data2.txt"))) {
 			while(input.hasNextLine()) {
 				List<String> errorList = new ArrayList<String>();
+
 				String line = input.nextLine();
 				String[] words = line.split(", ");
 				
+				System.out.println(lineNumber);
+				System.out.println(words[0] + " " + words[1] + " " + words[2]);
 				try {
 					Connection connection = getConnection();
-					PreparedStatement checkStatement = connection.prepareStatement(""
-							+ "select MaThanhVien from THANHVIEN where MaThanhVien =" + words[0]);
-					checkStatement.execute();
+					PreparedStatement selectStatement = connection.prepareStatement("select MaThanhVien from THANHVIEN where MaThanhVien = ?");
+					selectStatement.setString(1, words[0]);
+					ResultSet rs = selectStatement.executeQuery();
+					if(!rs.next()) {
+						System.out.println("Khong ton tai");
+						errorList.add("Khong ton tai nguoi dung");
+					}
 				}
-				catch (Exception e) {
-					errorList.add("Ma thanh vien khong ton tai trong CSDL");
+				catch(Exception e) {
+					System.out.println(e);
 				}
-				
-				//check for error in data2.txt
 				if(Integer.parseInt(words[1]) > 500) {
 					errorList.add("Diem thuong lon hon 500");
 				}
 				if(Integer.parseInt(words[1]) < 0) {
-					errorList.add("Diem thuong khong phai so nguyen duong");
+					errorList.add("Khong phai so nguyen duong");
 				}
 				if(words[2] != "VIP" && words[2] != "NOR") {
-					errorList.add("Level khong phai la VIP hoac NOR");
+					errorList.add("Khong phai la loai VIP hoac NOR");
 				}
-				
 				if(!errorList.isEmpty()) {
-					DataOutputStream output = new DataOutputStream(new FileOutputStream("C:\\Users\\LENOVO\\eclipse-workspace\\cuoiKy-Java\\src\\cau2\\error.txt"));
-					String lineOutput = "Dong " + lineNumber + ": ";
-					for(String error:errorList) {
-						lineOutput += error;
-						lineOutput += ", ";
-					}
-					output.writeBytes(lineOutput);
-					output.close();
-					continue;
+						String lineOutput = "Dong " + lineNumber + ": ";
+						for(String error:errorList) {
+							lineOutput += error + ", ";
+						}
+						System.out.println(lineOutput);
+						errorLine.add(lineOutput);
 				}
-				
-				lineNumber += 1;
+				errorList.clear();
+				lineNumber++;
+				System.out.println("Hoan thanh vong lap");
 			}
+			input.close();
 		}
 		catch (IOException e) {
+			System.out.println(e);
+		}
+		try {
+			PrintWriter output = new PrintWriter("C:\\\\Users\\\\LENOVO\\\\eclipse-workspace\\\\cuoiKy-Java\\\\src\\\\cau2\\\\error.txt", "UTF-8");
+			for(String item:errorLine) {
+				output.println(item);
+			}
+			output.close();
+		}
+		catch(IOException e) {
 			System.out.println(e);
 		}
 	}
