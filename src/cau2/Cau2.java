@@ -2,8 +2,6 @@ package cau2;
 import java.sql.*;
 import java.io.*;
 import java.util.*;
-import java.util.Date;
-import java.text.SimpleDateFormat;
 
 public class Cau2 {
 	public static void main(String[] args) {
@@ -11,7 +9,7 @@ public class Cau2 {
 		try {
 			//createDatabase();
 			//createTable();
-			cau2.importData1();
+			cau2.data2();
 		}
 		catch (Exception e) {
 			System.out.println(e);
@@ -70,7 +68,7 @@ public class Cau2 {
 				String line;
 				line = input.nextLine();
 				//using words array to store each part of the record
-				String[] words = line.split(",");
+				String[] words = line.split(", ");
 				
 				try {
 					Connection connection = getConnection();
@@ -94,6 +92,54 @@ public class Cau2 {
 				catch (Exception e) {
 					System.out.println(e);
 				}
+			}
+		}
+		catch (IOException e) {
+			System.out.println(e);
+		}
+	}
+	public void data2() {
+		int lineNumber = 1;
+		try (Scanner input = new Scanner(new File("C:\\Users\\LENOVO\\eclipse-workspace\\cuoiKy-Java\\src\\cau2\\data2.txt"))) {
+			while(input.hasNextLine()) {
+				List<String> errorList = new ArrayList<String>();
+				String line = input.nextLine();
+				String[] words = line.split(", ");
+				
+				try {
+					Connection connection = getConnection();
+					PreparedStatement checkStatement = connection.prepareStatement(""
+							+ "select MaThanhVien from THANHVIEN where MaThanhVien =" + words[0]);
+					checkStatement.execute();
+				}
+				catch (Exception e) {
+					errorList.add("Ma thanh vien khong ton tai trong CSDL");
+				}
+				
+				//check for error in data2.txt
+				if(Integer.parseInt(words[1]) > 500) {
+					errorList.add("Diem thuong lon hon 500");
+				}
+				if(Integer.parseInt(words[1]) < 0) {
+					errorList.add("Diem thuong khong phai so nguyen duong");
+				}
+				if(words[2] != "VIP" && words[2] != "NOR") {
+					errorList.add("Level khong phai la VIP hoac NOR");
+				}
+				
+				if(!errorList.isEmpty()) {
+					DataOutputStream output = new DataOutputStream(new FileOutputStream("C:\\Users\\LENOVO\\eclipse-workspace\\cuoiKy-Java\\src\\cau2\\error.txt"));
+					String lineOutput = "Dong " + lineNumber + ": ";
+					for(String error:errorList) {
+						lineOutput += error;
+						lineOutput += ", ";
+					}
+					output.writeBytes(lineOutput);
+					output.close();
+					continue;
+				}
+				
+				lineNumber += 1;
 			}
 		}
 		catch (IOException e) {
