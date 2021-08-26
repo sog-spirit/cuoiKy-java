@@ -111,15 +111,12 @@ public class Cau2 {
 				String line = input.nextLine();
 				String[] words = line.split(", ");
 				
-				System.out.println(lineNumber);
-				System.out.println(words[0] + " " + words[1] + " " + words[2]);
 				try {
 					Connection connection = getConnection();
 					PreparedStatement selectStatement = connection.prepareStatement("select MaThanhVien from THANHVIEN where MaThanhVien = ?");
 					selectStatement.setString(1, words[0]);
 					ResultSet rs = selectStatement.executeQuery();
 					if(!rs.next()) {
-						System.out.println("Khong ton tai");
 						errorList.add("Khong ton tai nguoi dung");
 					}
 				}
@@ -132,8 +129,8 @@ public class Cau2 {
 				if(Integer.parseInt(words[1]) < 0) {
 					errorList.add("Khong phai so nguyen duong");
 				}
-				if(words[2] != "VIP" && words[2] != "NOR") {
-					errorList.add("Khong phai la loai VIP hoac NOR");
+				if(!(words[2].contains("VIP") || words[2].contains("NOR"))) {
+					errorList.add("Khong phai loai NOR hay VIP");
 				}
 				if(!errorList.isEmpty()) {
 						String lineOutput = "Dong " + lineNumber + ": ";
@@ -143,9 +140,30 @@ public class Cau2 {
 						System.out.println(lineOutput);
 						errorLine.add(lineOutput);
 				}
+				else {
+					float chiPhiNhan = 0;
+					if(words[2].contains("VIP")) {
+						chiPhiNhan = Float.parseFloat(words[1])*50000;
+					}
+					if(words[2].contains("NOR")) {
+						chiPhiNhan = Float.parseFloat(words[1])*20000;
+					}
+					try {
+						Connection connection = getConnection();
+						PreparedStatement updateStatement = connection.prepareStatement(""
+								+ "update THANHVIEN "
+								+ "set ChiPhiNhan += ? where MaThanhVien = ?");
+						updateStatement.setFloat(1, chiPhiNhan);
+						updateStatement.setString(2, words[0]);
+						updateStatement.executeUpdate();
+					}
+					catch(Exception e) {
+						System.out.println(e);
+					}
+					
+				}
 				errorList.clear();
 				lineNumber++;
-				System.out.println("Hoan thanh vong lap");
 			}
 			input.close();
 		}
