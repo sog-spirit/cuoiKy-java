@@ -7,9 +7,11 @@ import java.text.SimpleDateFormat;
 
 public class Cau2 {
 	public static void main(String[] args) {
+		Cau2 cau2 = new Cau2();
 		try {
-			createDatabase();
-			createTable();
+			//createDatabase();
+			//createTable();
+			cau2.importData1();
 		}
 		catch (Exception e) {
 			System.out.println(e);
@@ -21,7 +23,6 @@ public class Cau2 {
 		try {
 			Class.forName("com.microsoft.sqlserver.jdbc.SQLServerDriver");
 			Connection connection = DriverManager.getConnection(connectionString);
-			System.out.println("Ket noi thanh cong");
 			return connection;
 		}
 		catch(Exception e) {
@@ -60,6 +61,42 @@ public class Cau2 {
 			System.out.println("Tao bang thanh cong");
 		}
 		catch(Exception e) {
+			System.out.println(e);
+		}
+	}
+	public void importData1() {
+		try (Scanner input = new Scanner(new File("C:\\Users\\LENOVO\\eclipse-workspace\\cuoiKy-Java\\src\\cau2\\data1.txt"))) {
+			while(input.hasNextLine()) {
+				String line;
+				line = input.nextLine();
+				//using words array to store each part of the record
+				String[] words = line.split(",");
+				
+				try {
+					Connection connection = getConnection();
+					PreparedStatement insertStatement = connection.prepareStatement(""
+							+ "insert into THANHVIEN ("
+							+ "MaThanhVien,"
+							+ "TenThanhVien,"
+							+ "NgaySinh,"
+							+ "DiaChi,"
+							+ "Email,"
+							+ "SoDienThoai)"
+							+ "values (?,?,?,?,?,?)");
+					insertStatement.setString(1, words[0]);
+					insertStatement.setString(2, words[1]);
+					insertStatement.setString(3, words[2]);
+					insertStatement.setString(4, words[3]);
+					insertStatement.setString(5, words[4]);
+					insertStatement.setString(6, words[5]);
+					insertStatement.executeUpdate();
+				}
+				catch (Exception e) {
+					System.out.println(e);
+				}
+			}
+		}
+		catch (IOException e) {
 			System.out.println(e);
 		}
 	}
